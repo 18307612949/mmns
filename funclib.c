@@ -6,14 +6,14 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
-
-int isnumeric(char *input, size_t size)
+int isnumeric(char *input)
 {
 	int i;
 
-	for (i = 0; i < size; i++)
-		if (!isdigit(input + i))
+	for (i = 0; i < strlen(input); i++)
+		if (!isdigit(*input + i))
 			return 0;
 
 	return 1;
