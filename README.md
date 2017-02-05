@@ -32,7 +32,10 @@ program is the glue that holds it all together.
 ## How do I use it?
 The same binary can be reused as the client and the server. It behaves
 similarly to `nc` in that when you provide it with the `-l` flag, it will
-simply behave as a 'listener'.
+simply behave as a 'listener'. ***WARNING :: THIS ASSUMES THAT YOU WILL USE
+THE SAME BINARY VERSION AS YOUR LISTENER AND SENDER*** I am not responsible
+for any silly mistakes you make from not reading this warning. (How can I be,
+it's free software!).
 
 
 There are two types of communication within this system.
@@ -40,7 +43,7 @@ There are two types of communication within this system.
 1. A client will tell the listener something
 2. A client will ask the listener for some data
 
-What exactly the client asks for is based on an `unsigned short`. This is
+What exactly the client asks for is based on an `unsigned char`. This is
 described in, `data.h`.
 
 ## TODO
