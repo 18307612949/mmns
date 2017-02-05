@@ -27,6 +27,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	/* VERBOSITY */
+
 	/* go into listener mode, or stats blaster mode */
 	if (args.mode == MODE_CLIENT) {
 		mode_client(&args);
@@ -70,6 +72,7 @@ int parse_args(int argc, char **argv, cmds_t *args)
 						optarg);
 				return 1;
 			}
+
 		default:
 			break;
 	}
@@ -82,8 +85,6 @@ int parse_args(int argc, char **argv, cmds_t *args)
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-
-
 /*
  * funcs : mode_{client, listener}
  * args  : cmds_t *
@@ -92,6 +93,13 @@ int parse_args(int argc, char **argv, cmds_t *args)
  *         both client and listener. The client will sleep for however long
  *         the '-t' timeout will allow, and the listener will simply fork
  *         the process with any new communications over the designated port.
+ *
+ *         mode_client will malloc sizeof(comm_t), and simply fill out that
+ *         data as necessary
+ *
+ *         mode_listener will perform multiple mallocs creating a list (using
+ *         list functions within "list.h") of lists. List of machine stats,
+ *         and each inner list contains, "--limit" nodes.
  */
 
 void mode_client(cmds_t *args) {
