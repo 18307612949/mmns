@@ -15,3 +15,12 @@ typedef struct cmds_t {
 	uint16_t port;
 	uint16_t timeout;
 } cmds_t;
+
+/* 
+ * define some command defaults
+ *
+ * these exist because we don't want to have infinite sized lists (takes
+ * forever to compute and traverse).
+ */
+#define MAX_CLIENTS   64
+#define MAX_CLIENT_LIST_SIZE 64
