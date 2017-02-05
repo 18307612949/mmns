@@ -30,10 +30,21 @@ the ability to change sessions and where your programs are rendered, and this
 program is the glue that holds it all together.
 
 ## How do I use it?
+The same binary can be reused as the client and the server. It behaves
+similarly to `nc` in that when you provide it with the `-l` flag, it will
+simply behave as a 'listener'.
 
-Good Question! I haven't figured that out yet...
+
+There are two types of communication within this system.
+
+1. A client will tell the listener something
+2. A client will ask the listener for some data
+
+What exactly the client asks for is based on an `unsigned short`. This is
+described in, `data.h`.
 
 ## TODO
 * JSON interface
-* command interface
+* command line interface
+* daemonization
 * end-to-end encryption
