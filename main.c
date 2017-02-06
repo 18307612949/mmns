@@ -103,7 +103,7 @@ int parse_args(int argc, char **argv, cmds_t *args)
  */
 
 void mode_client(cmds_t *args) {
-	comm_t client_stats = malloc(sizeof(comm_t));
+	comm_t *client_stats = malloc(sizeof(comm_t));
 
 	if (client_stats) {
 
@@ -112,7 +112,7 @@ void mode_client(cmds_t *args) {
 		}
 
 	} else {
-		fprintf(stderr, "insufficient memory!\n",);
+		fprintf(stderr, "insufficient memory!\n");
 	}
 
 }
