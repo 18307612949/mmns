@@ -106,7 +106,13 @@ void mode_client(cmds_t *args) {
 	comm_t client_stats = malloc(sizeof(comm_t));
 
 	if (client_stats) {
+
+		while (1) {
+			/* get stats */
+		}
+
 	} else {
+		fprintf(stderr, "insufficient memory!\n",);
 	}
 
 }
