@@ -95,7 +95,7 @@ int parse_args(int argc, char **argv, cmds_t *args)
  *         the process with any new communications over the designated port.
  *
  *         mode_client will malloc sizeof(comm_t), and simply fill out that
- *         data as necessary
+ *         data as necessary, then send it to the specifed listener
  *
  *         mode_listener will perform multiple mallocs creating a list (using
  *         list functions within "list.h") of lists. List of machine stats,
@@ -103,6 +103,12 @@ int parse_args(int argc, char **argv, cmds_t *args)
  */
 
 void mode_client(cmds_t *args) {
+	comm_t client_stats = malloc(sizeof(comm_t));
+
+	if (client_stats) {
+	} else {
+	}
+
 }
 
 void mode_listener(cmds_t *args) {
