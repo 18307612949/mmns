@@ -5,3 +5,4 @@
  */
 
 int isnumeric(char *input);
+int get_digit_index(char *input);
