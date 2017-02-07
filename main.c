@@ -1,6 +1,5 @@
 /*
  * TODO :: 
- *	Implement Statistics Gathering
  */
 
 #include <stdint.h>
@@ -143,6 +142,7 @@ void mode_client(cmds_t *args) {
 			/* send the data over that sock */
 
 			/* cleanup */
+			memset(client_stats, 0, sizeof(comm_t));
 
 			/* sleep */
 			usleep(args->timeout * TIMEOUT);
@@ -160,7 +160,6 @@ void mode_client(cmds_t *args) {
  * out  : void
  * use  : prints out system information in a log style
  */
-
 void mode_client_verbose(comm_t *input)
 {
 	/* print out timestamp */
@@ -199,6 +198,7 @@ int mode_client_collectstats (comm_t *client_stats)
 	/* get timestamp */
 	gettimeofday(&(client_stats->time), NULL);
 
+	/* getting memory statistics */
 	getmemstats(&(client_stats->mem));
 
 	return return_val;
