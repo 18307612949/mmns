@@ -1,6 +1,7 @@
 /* Define what communication and statistics are within this program */
 
 #include <stdint.h>
+#include <sys/time.h>
 
 /* types of communication, max of 8 */
 enum {
@@ -39,6 +40,7 @@ typedef struct stat_mem_t {
 
 typedef struct comm_t {
 	hdr_t header;
+	struct timeval time;
 	stat_avg_t avg;
 	stat_mem_t mem;
 } comm_t;
