@@ -24,7 +24,7 @@ int get_digit_index(char *input)
 	int i;
 	
 	for (i = 0; i < strlen(input); i++)
-		if (isdigit(*input + i))
+		if (isdigit(*(input + i)))
 			break;
 
 	return i;
