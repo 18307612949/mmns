@@ -24,8 +24,8 @@ typedef struct stat_avg_t {
 
 typedef struct stat_mem_t {
 	uint64_t mem_used;	// these define values located within
-	uint64_t mem_cache;	// /proc/meminfo, and the memory values are
-	uint64_t mem_free;	// assumed to be in kB. If they're not and you
+	uint64_t mem_free;	// proc/meminfo, and the memory values are
+	                        // assumed to be in kB. If they're not and you
 				// have issues, TELL ME IMMEDIATELY!
 } stat_mem_t;
 
