@@ -14,6 +14,7 @@ typedef struct cmds_t {
 	uint8_t  mode;
 	uint16_t port;
 	uint16_t timeout;
+	uint8_t  verbose;
 } cmds_t;
 
 /* 
