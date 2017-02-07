@@ -28,7 +28,7 @@ Once completed, this will allow Nova Computing, and others to set up a
 cloud solution for high performance computing. For example, we plan to have
 the ability to change sessions and where your programs are rendered, and this
 program is the brains that determines what machine your Java programs should
-run on.
+run.
 
 ## How do I use it?
 The same binary can be reused as the client and the server. It behaves
