@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-/* types of communication, max of 255 */
+/* types of communication, max of 8 */
 enum {
 	COMM_NONE	= 0x1,
 	COMM_SEND_ONLY	= 0x2,
