@@ -15,6 +15,8 @@
 #include "cmds.h"
 #include "funclib.h"
 
+#define TIMEOUT 1000 * 1000
+
 int parse_args(int argc, char **argv, cmds_t *args);
 void mode_client(cmds_t *args);
 void mode_listener(cmds_t *args);
@@ -109,13 +111,45 @@ void mode_client(cmds_t *args) {
 
 		while (1) {
 			/* get stats */
+			mode_client_collectstats(client_stats);
+
+			/* make a sock */
+
+			/* send the data over that sock */
+
+			/* cleanup */
+
+			/* sleep */
+			usleep(args->timeout * TIMEOUT);
 		}
 
 	} else {
 		fprintf(stderr, "insufficient memory!\n");
 	}
-
 }
+
+/*
+ * funcs : mode_client_collectstats
+ * args  : comm_t *
+ * out   : int
+ * use   : this function will simply fill out the comm_t struct, to be sent
+ *         to the listener
+ */
+int mode_client_collectstats (comm_t *client_stats)
+{
+	int return_val = 0;
+	getloadavg(client_stats->avg.avg, 3);
+
+	if (args->verbose) {
+		printf("%f\n", client_stats->avg.avg[0]);
+		printf("%f\n", client_stats->avg.avg[1]);
+		printf("%f\n", client_stats->avg.avg[2]);
+		printf("\n", client_stats->avg.avg[2]);
+	}
+
+	return return_val;
+}
+
 
 void mode_listener(cmds_t *args) {
 }
