@@ -8,3 +8,5 @@ all:
 debug:
 	$(CC) -g -o $(OUT) $(COBJS)
 
+clean:
+	rm $(OUT)
