@@ -16,10 +16,10 @@
 #include "funclib.h"
 
 #define TIMEOUT 1000 * 1000
+#define DEFAULT_TIMEOUT 60
 #define PARSE_BUF_SIZE 128
 
 #define MEM_FILE "/proc/meminfo"
-
 #define MEM_TOTAL "MemTotal"
 #define MEM_FREE  "MemFree"
 
@@ -98,7 +98,7 @@ int parse_args(int argc, char **argv, cmds_t *args)
 
 	/* set defaults if no value exists aren't already set */
 	if (args->timeout == 0)
-		args->timeout = 60;
+		args->timeout = DEFAULT_TIMEOUT;
 
 	return 0;
 }
@@ -164,6 +164,10 @@ void mode_client(cmds_t *args) {
 void mode_client_verbose(comm_t *input)
 {
 	/* print out timestamp */
+	printf("TIME\n");
+	printf("\tsec   : %ld\n", input->time.tv_sec);
+	printf("\tmicro : %ld\n", input->time.tv_usec);
+	printf("\n");
 
 	/* print out cpu info */
 	printf("Load AVG\n");
@@ -192,6 +196,9 @@ int mode_client_collectstats (comm_t *client_stats)
 	int return_val = 0;
 	getloadavg(client_stats->avg.avg, 3);
 
+	/* get timestamp */
+	gettimeofday(&(client_stats->time), NULL);
+
 	getmemstats(&(client_stats->mem));
 
 	return return_val;
@@ -212,20 +219,18 @@ int getmemstats(stat_mem_t *input)
 	if (fp) {
 		/* spin through the file, looking for the various targets */
 		while (fgets(buf, PARSE_BUF_SIZE, fp)) { // fgets stops on '\n'
-
 			/* remove the 'kb' from the end of the line */
 			for (i = 0; i < 3; i++)
 				buf[strlen(buf) - i] = 0;
 
-
 			/* string comparisons */
-			if (strncmp(buf, MEM_TOTAL, sizeof(MEM_TOTAL) - 1)
+			if (strncmp(buf, MEM_TOTAL, strlen(MEM_TOTAL) - 1)
 									== 0) {
 				input->mem_total = 
 					atol(buf + get_digit_index(buf));
 			}
 
-			if (strncmp(buf, MEM_FREE, sizeof(MEM_FREE) - 1)
+			if (strncmp(buf, MEM_FREE, strlen(MEM_FREE) - 1)
 									== 0) {
 				input->mem_free = 
 					atol(buf + get_digit_index(buf));
