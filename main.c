@@ -1,18 +1,34 @@
 /*
- * TODO :: 
+ * Brian Chrzanowski
+ *
+ * mmns, Multi-Machine-Network-System
+ *  
+ * TODO :: Client
+ *              socket()
+ *              write()
+ *
+ *         Listener
+ *		fork()
+ *		accept()
+ *		list
+ *		length
  */
 
+#include <netdb.h> 
+#include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
-#include "data.h"
-#include "list.h"
 #include "cmds.h"
+#include "data.h"
 #include "funclib.h"
+#include "list.h"
 
 #define TIMEOUT 1000 * 1000
 #define DEFAULT_TIMEOUT 60
@@ -27,7 +43,7 @@ int parse_args(int argc, char **argv, cmds_t *args);
 int  getmemstats(stat_mem_t *input);
 int  mode_client_collectstats(comm_t *client_stats);
 void mode_client(cmds_t *args);
-void mode_client_verbose(comm_t *input);
+void mode_client_verbose(cmds_t *args, comm_t *input);
 
 void mode_listener(cmds_t *args);
 
@@ -38,8 +54,6 @@ int main(int argc, char **argv)
 	if (parse_args(argc, argv, &args)) {
 		return 1;
 	}
-
-	/* VERBOSITY */
 
 	/* go into listener mode, or stats blaster mode */
 	if (args.mode == MODE_CLIENT) {
@@ -99,6 +113,9 @@ int parse_args(int argc, char **argv, cmds_t *args)
 	if (args->timeout == 0)
 		args->timeout = DEFAULT_TIMEOUT;
 
+	/* set the ip address to the last arg */
+	strcpy(args->ip_addr, argv[argc - 1]);
+
 	return 0;
 }
 
@@ -125,19 +142,27 @@ int parse_args(int argc, char **argv, cmds_t *args)
 
 void mode_client(cmds_t *args) {
 	comm_t *client_stats = malloc(sizeof(comm_t));
+	struct sockaddr_in serv_addr;
+	struct hostent *server;
+	int sockfd;
 
 	if (client_stats) {
-
 		while (1) {
 			/* get stats */
 			mode_client_collectstats(client_stats);
 
 			/* verbosity */
 			if (args->verbose) {
-				mode_client_verbose(client_stats);
+				mode_client_verbose(args, client_stats);
 			}
 
 			/* make a sock */
+			sockfd = socket(AF_INET, SOCK_STREAM, 0);
+			if (sockfd == -1) {
+				fprintf(stderr, "Error opening socket\n");
+			}
+
+			server = gethostbyname(args->ip_addr);
 
 			/* send the data over that sock */
 
@@ -160,7 +185,7 @@ void mode_client(cmds_t *args) {
  * out  : void
  * use  : prints out system information in a log style
  */
-void mode_client_verbose(comm_t *input)
+void mode_client_verbose(cmds_t *args, comm_t *input)
 {
 	/* print out timestamp */
 	printf("TIME\n");
@@ -179,6 +204,10 @@ void mode_client_verbose(comm_t *input)
 	printf("Memory Info\n");
 	printf("Total : %ld\n", input->mem.mem_total);
 	printf("Free  : %ld\n", input->mem.mem_free);
+	printf("\n");
+
+	/* print out sending information */
+	printf("Sending to -> %s\n", args->ip_addr);
 	printf("\n");
 }
 
