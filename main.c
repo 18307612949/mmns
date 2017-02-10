@@ -141,10 +141,12 @@ int parse_args(int argc, char **argv, cmds_t *args)
  */
 
 void mode_client(cmds_t *args) {
-	comm_t *client_stats = malloc(sizeof(comm_t));
+
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
 	int sockfd;
+	int num_bytes;
+	comm_t *client_stats = malloc(sizeof(comm_t));
 
 	if (client_stats) {
 		while (1) {
@@ -160,19 +162,45 @@ void mode_client(cmds_t *args) {
 			sockfd = socket(AF_INET, SOCK_STREAM, 0);
 			if (sockfd == -1) {
 				fprintf(stderr, "Error opening socket\n");
+				break;
 			}
 
 			server = gethostbyname(args->ip_addr);
 
+			if (server == NULL) {
+				fprintf(stderr, "ERROR, no such host!\n");
+				break;
+			}
+
+			memset(&serv_addr, 0, sizeof(struct sockaddr_in));
+			serv_addr.sin_port = htons(args->port);
+
+			if (connect(sockfd, // make me look pretty
+					(struct sockaddr *) &serv_addr,
+					sizeof(serv_addr)) < 0) {
+				fprintf(stderr, "error connecting\n");
+				break;
+			}
+
 			/* send the data over that sock */
+			num_bytes = write(sockfd, 
+			                  client_stats,
+					  sizeof(struct comm_t));
+
+
+			if (num_bytes < 0) {
+				fprintf(stderr, "error writing to socket\n");
+			}
 
 			/* cleanup */
+			close(sockfd);
 			memset(client_stats, 0, sizeof(comm_t));
 
 			/* sleep */
 			usleep(args->timeout * TIMEOUT);
 		}
 
+		free(client_stats);
 	} else {
 		fprintf(stderr, "insufficient memory!\n");
 	}
@@ -181,7 +209,7 @@ void mode_client(cmds_t *args) {
 
 /*
  * func : mode_client_verbose
- * args : comm_t *
+ * args : cmds_t *, comm_t *
  * out  : void
  * use  : prints out system information in a log style
  */
