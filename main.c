@@ -197,6 +197,26 @@ void mode_client(cmds_t *args) {
 	}
 }
 
+/*
+ * func : bind_socket
+ * args : int addr, uint16_t
+ * out  : int
+ * use  : use this function to get a socket to read/write connections to
+ */
+
+int bind_sock(int addr, unsigned short port)
+{
+	int sfd;
+	struct sockaddr_un addr;
+
+	sfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sfd == -1)
+		return -1;
+
+	/* clear memory */
+
+}
+
 
 /*
  * func : mode_client_verbose
