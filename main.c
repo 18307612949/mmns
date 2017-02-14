@@ -4,8 +4,7 @@
  * mmns, Multi-Machine-Network-System
  *  
  * TODO :: Client
- *              socket()
- *              write()
+ *              Testing
  *
  *         Listener
  *		fork()
@@ -124,20 +123,14 @@ int parse_args(int argc, char **argv, cmds_t *args)
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 /*
- * funcs : mode_{client, listener}
+ * funcs : mode_client
  * args  : cmds_t *
  * out   : void
- * use   : these are both functions that behave as the 'main loop' for both
- *         both client and listener. The client will sleep for however long
- *         the '-t' timeout will allow, and the listener will simply fork
- *         the process with any new communications over the designated port.
+ * use   : The client will sleep for however long the '-t' timeout will allow,
+ *         then it will send communications mode_client will malloc
+ *         sizeof(comm_t), and simply fill out that data as necessary, then
+ *         send it to the specifed listener.
  *
- *         mode_client will malloc sizeof(comm_t), and simply fill out that
- *         data as necessary, then send it to the specifed listener
- *
- *         mode_listener will perform multiple mallocs creating a list (using
- *         list functions within "list.h") of lists. List of machine stats,
- *         and each inner list contains, "--limit" nodes.
  */
 
 void mode_client(cmds_t *args) {
@@ -177,16 +170,13 @@ void mode_client(cmds_t *args) {
 
 			if (connect(sockfd, // make me look pretty
 					(struct sockaddr *) &serv_addr,
-					sizeof(serv_addr)) < 0) {
+					sizeof(serv_addr)) == -1) {
 				fprintf(stderr, "error connecting\n");
 				break;
 			}
 
 			/* send the data over that sock */
-			num_bytes = write(sockfd, 
-			                  client_stats,
-					  sizeof(struct comm_t));
-
+			num_bytes = write(sockfd, &client_stats, sizeof(struct comm_t));
 
 			if (num_bytes < 0) {
 				fprintf(stderr, "error writing to socket\n");
@@ -201,6 +191,7 @@ void mode_client(cmds_t *args) {
 		}
 
 		free(client_stats);
+
 	} else {
 		fprintf(stderr, "insufficient memory!\n");
 	}
@@ -302,5 +293,25 @@ int getmemstats(stat_mem_t *input)
 }
 
 
-void mode_listener(cmds_t *args) {
+/*
+ * func : mode_listener
+ * args : cmds_t *
+ * out  : void
+ * use  : mode_listener will perform multiple mallocs creating a list (using
+ *        list functions within "list.h") of lists. List of machine stats,
+ *        and each inner list contains, "--limit" nodes.
+ *
+ *        The function itself will simply make additions to the list on
+ *        calls to the accept() function. The process will fork(), and
+ *        will create new entries into the list, using the function, 
+ *        mode_listener_manage_list.
+ */
+void mode_listener(cmds_t *args)
+{
+}
+
+
+
+void mode_listener_deep_free(comm_t *ptr)
+{
 }
