@@ -44,3 +44,18 @@ typedef struct comm_t {
 	stat_avg_t avg;
 	stat_mem_t mem;
 } comm_t;
+
+/*
+ * Because want to use a basic list, and the list should be able to grow
+ * based upon program conditionals.
+ *
+ *	more users -> more data / minute
+ *
+ * The amount of usable data should grow, thus the list needs to be resizable.
+ * In otherwords:
+ */
+
+typedef struct comm_list_t {
+	comm_t data;
+	struct comm_list_t *next;
+} comm_list_t;
