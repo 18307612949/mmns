@@ -23,6 +23,8 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "cmds.h"
 #include "data.h"
@@ -39,7 +41,7 @@
 
 int parse_args(int argc, char **argv, cmds_t *args);
 
-int  getmemstats(stat_mem_t *input);
+void getmemstats(stat_mem_t *input);
 int  mode_client_collectstats(comm_t *client_stats);
 void mode_client(cmds_t *args);
 void mode_client_verbose(cmds_t *args, comm_t *input);
@@ -61,6 +63,8 @@ int main(int argc, char **argv)
 		mode_listener(&args);
 	}
 
+	printf("leaving\n");
+
 	return 0;
 }
 
@@ -72,7 +76,6 @@ int main(int argc, char **argv)
  */
 int parse_args(int argc, char **argv, cmds_t *args)
 {
-	int i;
 	int oc;
 
 	while ((oc = getopt(argc, argv, "lp:t:v")) != -1) {
@@ -136,9 +139,8 @@ int parse_args(int argc, char **argv, cmds_t *args)
 void mode_client(cmds_t *args) {
 
 	struct sockaddr_in serv_addr;
-	struct hostent *server;
 	int sockfd;
-	int num_bytes;
+	int num_bytes = 0;
 	comm_t *client_stats = malloc(sizeof(comm_t));
 
 	if (client_stats) {
@@ -158,29 +160,27 @@ void mode_client(cmds_t *args) {
 				break;
 			}
 
-			server = gethostbyname(args->ip_addr);
-
-			if (server == NULL) {
-				fprintf(stderr, "ERROR, no such host!\n");
-				break;
-			}
-
 			memset(&serv_addr, 0, sizeof(struct sockaddr_in));
+			serv_addr.sin_family = AF_INET;
 			serv_addr.sin_port = htons(args->port);
+			inet_aton(args->ip_addr, &(serv_addr.sin_addr));
 
-			if (connect(sockfd, // make me look pretty
-					(struct sockaddr *) &serv_addr,
-					sizeof(serv_addr)) == -1) {
+			if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr))
+					== -1) {
 				fprintf(stderr, "error connecting\n");
 				break;
 			}
 
 			/* send the data over that sock */
-			num_bytes = write(sockfd, &client_stats, sizeof(struct comm_t));
+			num_bytes = send(sockfd, &client_stats, sizeof(struct comm_t), 0);
+			printf("we wrote %d / %ld bytes\n", num_bytes, sizeof(struct comm_t));
 
-			if (num_bytes < 0) {
-				fprintf(stderr, "error writing to socket\n");
+			if (num_bytes == -1) {
+				perror("sockets ");
+				break;
 			}
+
+			printf("cleaning up\n");
 
 			/* cleanup */
 			close(sockfd);
@@ -195,26 +195,6 @@ void mode_client(cmds_t *args) {
 	} else {
 		fprintf(stderr, "insufficient memory!\n");
 	}
-}
-
-/*
- * func : bind_socket
- * args : int addr, uint16_t
- * out  : int
- * use  : use this function to get a socket to read/write connections to
- */
-
-int bind_sock(int addr, unsigned short port)
-{
-	int sfd;
-	struct sockaddr_un addr;
-
-	sfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sfd == -1)
-		return -1;
-
-	/* clear memory */
-
 }
 
 
@@ -275,10 +255,10 @@ int mode_client_collectstats (comm_t *client_stats)
 /*
  * funcs : getmemstats
  * args  : stat_mem_t *
- * out   : int
+ * out   : void
  * use   : fills out the relevant memory information into the passed in struct
  */
-int getmemstats(stat_mem_t *input)
+void getmemstats(stat_mem_t *input)
 {
 	long i;
 	char buf[PARSE_BUF_SIZE] = {0};
@@ -292,17 +272,14 @@ int getmemstats(stat_mem_t *input)
 				buf[strlen(buf) - i] = 0;
 
 			/* string comparisons */
-			if (strncmp(buf, MEM_TOTAL, strlen(MEM_TOTAL) - 1)
-									== 0) {
-				input->mem_total = 
-					atol(buf + get_digit_index(buf));
+			if (strncmp(buf, MEM_TOTAL, strlen(MEM_TOTAL) - 1) == 0) {
+				input->mem_total = atol(buf + get_digit_index(buf));
 			}
 
-			if (strncmp(buf, MEM_FREE, strlen(MEM_FREE) - 1)
-									== 0) {
-				input->mem_free = 
-					atol(buf + get_digit_index(buf));
+			if (strncmp(buf, MEM_FREE, strlen(MEM_FREE) - 1) == 0) {
+				input->mem_free = atol(buf + get_digit_index(buf));
 			}
+
 		}
 
 	} else {
