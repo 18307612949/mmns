@@ -1,11 +1,12 @@
 CC = gcc
 TARGET = mmns
 OBJECTS = main.o funclib.o
+FLAGS = -Wall
 
 all: $(TARGET)
 
 %.o: %.c
-	$(CC) -g -c -o $@ $<
+	$(CC) -g -c -o $@ $< $(FLAGS)
 
 clean: clean-obj clean-bin
 
