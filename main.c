@@ -4,13 +4,10 @@
  * mmns, Multi-Machine-Network-System
  *  
  * TODO :: Client
- *              Testing
+ *			Help Text
+ *		:: Server
+ *			Everything
  *
- *         Listener
- *		fork()
- *		accept()
- *		list
- *		length
  */
 
 #include <netdb.h> 
@@ -160,13 +157,14 @@ void mode_client(cmds_t *args) {
 				break;
 			}
 
+			/* set up connection */
 			memset(&serv_addr, 0, sizeof(struct sockaddr_in));
 			serv_addr.sin_family = AF_INET;
 			serv_addr.sin_port = htons(args->port);
 			inet_aton(args->ip_addr, &(serv_addr.sin_addr));
 
-			if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr))
-					== -1) {
+			if (connect(sockfd, (struct sockaddr *)&serv_addr,
+						sizeof(serv_addr)) == -1) {
 				fprintf(stderr, "error connecting\n");
 				break;
 			}
@@ -196,7 +194,6 @@ void mode_client(cmds_t *args) {
 		fprintf(stderr, "insufficient memory!\n");
 	}
 }
-
 
 /*
  * func : mode_client_verbose
@@ -290,6 +287,10 @@ void getmemstats(stat_mem_t *input)
 }
 
 
+
+
+
+
 /*
  * func : mode_listener
  * args : cmds_t *
@@ -303,11 +304,10 @@ void getmemstats(stat_mem_t *input)
  *        will create new entries into the list, using the function, 
  *        mode_listener_manage_list.
  */
+
 void mode_listener(cmds_t *args)
 {
 }
-
-
 
 void mode_listener_deep_free(comm_t *ptr)
 {
