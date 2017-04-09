@@ -28,9 +28,11 @@
 #include "funclib.h"
 #include "list.h"
 
-#define TIMEOUT 1000 * 1000
+#define TIMEOUT         1000 * 1000
 #define DEFAULT_TIMEOUT 60
-#define PARSE_BUF_SIZE 128
+#define PARSE_BUF_SIZE  128
+#define INITIAL_SIZE    32
+#define NODE_TIMEOUT    1800			// time before we remove node data
 
 #define MEM_FILE "/proc/meminfo"
 #define MEM_TOTAL "MemTotal"
@@ -76,36 +78,36 @@ int parse_args(int argc, char **argv, cmds_t *args)
 	int oc;
 
 	while ((oc = getopt(argc, argv, "lp:t:v")) != -1) {
-	switch (oc) {
-		case 'l':
-			args->mode |= MODE_LISTENER;
-			break;
-		case 'p':
-			if (isnumeric(optarg)) {
-				args->port = atoi(optarg);
-			} else {
-				fprintf(stderr, "%s isn't a numeric port!\n",
-						optarg);
-				return 1;
-			}
-			break;
-		case 't':
-			if (isnumeric(optarg)) {
-				args->timeout = atoi(optarg);
-			} else {
-				fprintf(stderr, "%s isn't a numeric time!\n",
-						optarg);
-				return 1;
-			}
-			break;
+		switch (oc) {
+			case 'l':
+				args->mode |= MODE_LISTENER;
+				break;
+			case 'p':
+				if (isnumeric(optarg)) {
+					args->port = atoi(optarg);
+				} else {
+					fprintf(stderr, "%s isn't a numeric port!\n",
+							optarg);
+					return 1;
+				}
+				break;
+			case 't':
+				if (isnumeric(optarg)) {
+					args->timeout = atoi(optarg);
+				} else {
+					fprintf(stderr, "%s isn't a numeric time!\n",
+							optarg);
+					return 1;
+				}
+				break;
 
-		case 'v':
-			args->verbose = 1;
-			break;
+			case 'v':
+				args->verbose = 1;
+				break;
 
-		default:
-			break;
-	}
+			default:
+				break;
+		}
 	}
 
 	/* set defaults if no value exists aren't already set */
@@ -307,8 +309,26 @@ void getmemstats(stat_mem_t *input)
 
 void mode_listener(cmds_t *args)
 {
-}
+	int max_size, size, i;
+	node_info_t **data;
 
-void mode_listener_deep_free(comm_t *ptr)
-{
+	max_size = INITIAL_SIZE;
+	size = 0;
+	data = malloc(sizeof(node_info_t *) * max_size);
+
+	if (data) { // this is the main server loop
+		while (0xdeadbeef) {
+		}
+	}
+
+	// free all of the data, we got the signal to shutdown
+	if (data) {
+		for (i = 0; i < size; i++) {
+			if (data[i]) {
+				free(data[i]);
+			}
+		}
+
+		free(data);
+	}
 }
