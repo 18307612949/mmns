@@ -1,0 +1,8 @@
+Mon Apr 10, 2017 01:15
+
+	What's Left To Be Done
+
+		1. sqlite db
+		2. password authentication
+		3. sqlite to JSON
+		4. Implement a sqlite shim for logging

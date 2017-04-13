@@ -9,11 +9,9 @@ enum {
 	COMM_SEND_ONLY	= 0x1,
 
 	// These flags will return JSON to the user
-	COMM_QUERY_ALL     = 0x30,         // Returns EVERYTHING
-	COMM_QUERY_USER    = 0x31,         // Returns ALL info about a  USER
-	COMM_QUERY_IP      = 0x32,         // Returns ALL info about an IP
-	COMM_QUERY_PORT    = 0x33,         // Returns ALL info about a  PORT
-	
+	COMM_QUERY      = 0x30			// the user sends text to be treated
+									// as prepared SQL, with the results
+									// being returned to the user
 };
 
 
@@ -115,3 +113,9 @@ typedef struct system_info_t {
 	uint64_t  num_nodes;
 	uint64_t  num_clients;
 } system_info_t;
+
+/* This is sent by the client, and it denotes */
+
+/* And finally, the piece that brings everything together */
+typedef struct server_hdr_t {
+} server_hdr_t;

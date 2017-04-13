@@ -1,0 +1,25 @@
+SQLite Extensions
+
+	Because sqlite only provides a small subset of functions, to do some
+	higher level mathematics, I needed to include more.
+
+	For example, it's pretty difficult to compute a distance in multiple
+	dimensions without a 'sqrt()' function.
+
+	Needless to say, all of the extensions are located in extensions.c,
+	and the shared library is located within bin when the program has
+	been fully built.
+
+	Here's the list of extensions:
+		sqrt()
+			Uses math.h's sqrt() function to compute a number's sqrt in SQL.
+
+			Returns
+				REAL
+
+			Ex.
+				> SELECT sqrt(9);
+				> 3.0
+
+		# -------------------------------------------------------------------- #
+

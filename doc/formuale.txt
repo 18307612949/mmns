@@ -1,0 +1,3 @@
+Mathematical Formulas Utilized by MMNS
+
+	1. Multi-Dimensional distance formula
