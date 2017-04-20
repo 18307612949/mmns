@@ -4,5 +4,6 @@
  * own.
  */
 
+double compute_time_delay(int users, int nodes);
 int isnumeric(char *input);
 int get_digit_index(char *input);
