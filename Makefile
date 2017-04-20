@@ -1,7 +1,7 @@
 CC = gcc
 TARGET = mmns
-OBJECTS = main.o funclib.o
-FLAGS = -Wall
+OBJECTS = main.o funclib.o sqlite3.o
+FLAGS = -Wall -pthread -ldl
 
 all: $(TARGET)
 
@@ -17,4 +17,4 @@ clean-bin:
 	rm -rf $(TARGET)
 	
 $(TARGET): $(OBJECTS)
-	$(CC) -g -o $(TARGET) $(OBJECTS)
+	$(CC) -g -o $(TARGET) $(OBJECTS) $(FLAGS)
