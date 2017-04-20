@@ -27,6 +27,7 @@
 #include "data.h"
 #include "funclib.h"
 #include "list.h"
+#include "sqlite3.h"
 
 #define TIMEOUT         1000 * 1000
 #define DEFAULT_TIMEOUT 60
