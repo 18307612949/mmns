@@ -313,6 +313,7 @@ void mode_listener(cmds_t *args)
 	int max_size, size, i;
 	node_info_t **data;
 
+	/* we have to spend some time getting some buffered memory ready */
 	max_size = INITIAL_SIZE;
 	size = 0;
 	data = malloc(sizeof(node_info_t *) * max_size);
@@ -331,5 +332,14 @@ void mode_listener(cmds_t *args)
 		}
 
 		free(data);
+	}
+}
+
+void mode_listener_loop(cmds_t *args, node_info_t **data)
+{
+	int loop;
+
+	loop = 1;
+	while (loop) {
 	}
 }
