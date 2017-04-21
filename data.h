@@ -59,8 +59,8 @@ typedef struct node_info_t {
 } node_info_t;
 
 /*
- * The following can be stored within each client node to maintain information
- * about the entire system.
+ * this is sent to each node client in response to updates about their
+ * statistics.
  */
 
 typedef struct system_info_t {
@@ -69,8 +69,3 @@ typedef struct system_info_t {
 	uint64_t  num_clients;
 } system_info_t;
 
-/* This is sent by the client, and it denotes */
-
-/* And finally, the piece that brings everything together */
-typedef struct server_hdr_t {
-} server_hdr_t;
