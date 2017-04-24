@@ -71,7 +71,7 @@ This is an org mode formatted file, written with vim-orgmode
 *** Why must I provide a user's full credentials?
 
       Because the TurboVNC suite assumes that the particular user that will
-      be using the session will be starting it up, so we use
+      be using the session will be starting it up, so we use:
 
       @begin=c@
             struct passwd *tmp = getpwnam("username here");
@@ -80,6 +80,74 @@ This is an org mode formatted file, written with vim-orgmode
 
 
 
+** Main Loop
 
-      
-** Interpreting Actions
+	The main program loop should be implemented just like in video games.
+	It should look similar to this:
+
+	@begin=c@
+		while (run_program) {
+			current_time = get_clock();
+
+			retrieve_connections();
+			fork_based_on_data();
+			new_time = get_current_ts();
+
+			sleep(); // sleep for just enough time to wait
+		}
+	@end=c@
+
+	This system implemented should perform the same function as video games,
+	wait while there isn't much to do, and attempt to do things approx
+	30x/sec. This same system is set up in parent's children, and in
+	combination with `MSG_DONTWAIT` in all calls to `recv`, we can achieve
+	a game loop, with minimal performance needs, only doing things when needed.
+
+** Queueing
+
+	The queue system is set up just like the memory allocator within K&R,
+	on pg 185. A Linked List sysytem, composed of all of the memory utilized.
+
+*** Adding
+
+	New data is pushed onto the list, similar to a stack.
+
+*** Removing
+
+	The remove function takes in a function pointer for each type of list.
+
+	I suggest that in function calls attempting to remove items from a list
+	look something like this:
+
+	@begin=c@
+	/* 
+	 * walk the list, calling this to see if you should remove the item
+	 * when it returns 1, you have the first item in the list to remove
+	 */
+	int remove_node_info(const void *ts, const void *b) {
+		int a = (int *)a;
+		int val = 0;
+
+		if (((struct comm_t *)(b->data))->header.ts < ts)
+			val = 1;
+		}
+
+		return val;
+	}
+	@end=c@
+
+	Comparing two things, like sorting the list, should look something
+	like the following:
+
+	@begin=c@
+	int compare_node_info(const void *a, const void *b) {
+		struct hdr_t *val1 = *(struct hdr_t **)a;
+		struct hdr_t *val2 = *(struct hdr_t **)b;
+
+		return (val2->ts < val1->ts); // returns 1 on true, 0 on false
+	}
+	@end=c@
+
+	Which should alert your sorting function on how to arrange the elements
+	it just passed in.
+	
