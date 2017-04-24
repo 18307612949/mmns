@@ -152,7 +152,7 @@ void mode_client(cmds_t *args) {
 		sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockfd == -1) {
 			fprintf(stderr, "Error opening socket\n");
-			break;
+			return;
 		}
 
 		/* set up connection */
@@ -164,7 +164,7 @@ void mode_client(cmds_t *args) {
 		if (connect(sockfd, (struct sockaddr *)&serv_addr,
 					sizeof(serv_addr)) == -1) {
 			fprintf(stderr, "error connecting\n");
-			break;
+			return;
 		}
 
 		while (1) {
@@ -361,11 +361,14 @@ void mode_listener(cmds_t *args)
 						break;
 
 					case 0:  /* child quits the program on return */
-						do_child();
+						// do_child();
 						exit(0);
+						break;
 
 					default: /* parent */
+						break;
 
+					}
 				}
 			}
 		}
@@ -419,7 +422,8 @@ int createSocket(int portnum, int maxClient, int mode)
 
 void print_help_text()
 {
-	char *help =
-		"USAGE: \"./mmns {-p port, -l, -v verbose, -s}";
+	char *help = "USAGE: \"./mmns {-p port, -l, -v verbose, -s}";
 	printf("%s\n", help);
+
+	return;
 }
