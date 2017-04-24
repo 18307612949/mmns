@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 enum {
-	MODE_CLIENT	= 0x00,
+	MODE_CLIENT	    = 0x00,
 	MODE_LISTENER	= 0x01
 };
 

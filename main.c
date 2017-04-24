@@ -29,17 +29,20 @@
 #include "list.h"
 #include "sqlite3.h"
 
-#define TIMEOUT         1000 * 1000
 #define DEFAULT_TIMEOUT 60
-#define PARSE_BUF_SIZE  128
+#define SOCKET_BUFFER   16 * 1024 * 1024
+#define HOSTLEN         256
 #define INITIAL_SIZE    32
 #define NODE_TIMEOUT    1800			// time before we remove node data
+#define PARSE_BUF_SIZE  128
+#define TIMEOUT         1000 * 1000
 
 #define MEM_FILE "/proc/meminfo"
 #define MEM_TOTAL "MemTotal"
 #define MEM_FREE  "MemFree"
 
 int parse_args(int argc, char **argv, cmds_t *args);
+void print_help_text();
 
 void getmemstats(stat_mem_t *input);
 int  mode_client_collectstats(comm_t *client_stats);
@@ -47,6 +50,8 @@ void mode_client(cmds_t *args);
 void mode_client_verbose(cmds_t *args, comm_t *input);
 
 void mode_listener(cmds_t *args);
+void mode_listener_loop(cmds_t *args, node_info_t **data);
+int createSocket(int portnum, int maxClient, int mode);
 
 int main(int argc, char **argv)
 {
@@ -78,8 +83,12 @@ int parse_args(int argc, char **argv, cmds_t *args)
 {
 	int oc;
 
-	while ((oc = getopt(argc, argv, "lp:t:v")) != -1) {
+	while ((oc = getopt(argc, argv, "shlp:t:v")) != -1) {
 		switch (oc) {
+			case 'h':
+				print_help_text();
+				return 1;
+
 			case 'l':
 				args->mode |= MODE_LISTENER;
 				break;
@@ -92,18 +101,13 @@ int parse_args(int argc, char **argv, cmds_t *args)
 					return 1;
 				}
 				break;
-			case 't':
-				if (isnumeric(optarg)) {
-					args->timeout = atoi(optarg);
-				} else {
-					fprintf(stderr, "%s isn't a numeric time!\n",
-							optarg);
-					return 1;
-				}
-				break;
 
 			case 'v':
 				args->verbose = 1;
+				break;
+				
+			case 's':
+				args->mode = MODE_LISTENER;
 				break;
 
 			default:
@@ -144,6 +148,25 @@ void mode_client(cmds_t *args) {
 	comm_t *client_stats = malloc(sizeof(comm_t));
 
 	if (client_stats) {
+		/* make a sock */
+		sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		if (sockfd == -1) {
+			fprintf(stderr, "Error opening socket\n");
+			break;
+		}
+
+		/* set up connection */
+		memset(&serv_addr, 0, sizeof(struct sockaddr_in));
+		serv_addr.sin_family = AF_INET;
+		serv_addr.sin_port = htons(args->port);
+		inet_aton(args->ip_addr, &(serv_addr.sin_addr));
+
+		if (connect(sockfd, (struct sockaddr *)&serv_addr,
+					sizeof(serv_addr)) == -1) {
+			fprintf(stderr, "error connecting\n");
+			break;
+		}
+
 		while (1) {
 			/* get stats */
 			mode_client_collectstats(client_stats);
@@ -151,25 +174,6 @@ void mode_client(cmds_t *args) {
 			/* verbosity */
 			if (args->verbose) {
 				mode_client_verbose(args, client_stats);
-			}
-
-			/* make a sock */
-			sockfd = socket(AF_INET, SOCK_STREAM, 0);
-			if (sockfd == -1) {
-				fprintf(stderr, "Error opening socket\n");
-				break;
-			}
-
-			/* set up connection */
-			memset(&serv_addr, 0, sizeof(struct sockaddr_in));
-			serv_addr.sin_family = AF_INET;
-			serv_addr.sin_port = htons(args->port);
-			inet_aton(args->ip_addr, &(serv_addr.sin_addr));
-
-			if (connect(sockfd, (struct sockaddr *)&serv_addr,
-						sizeof(serv_addr)) == -1) {
-				fprintf(stderr, "error connecting\n");
-				break;
 			}
 
 			/* send the data over that sock */
@@ -190,12 +194,11 @@ void mode_client(cmds_t *args) {
 			/* sleep */
 			usleep(args->timeout * TIMEOUT);
 		}
-
-		free(client_stats);
-
 	} else {
 		fprintf(stderr, "insufficient memory!\n");
 	}
+
+	free(client_stats);
 }
 
 /*
@@ -208,8 +211,7 @@ void mode_client_verbose(cmds_t *args, comm_t *input)
 {
 	/* print out timestamp */
 	printf("TIME\n");
-	printf("\tsec   : %ld\n", input->time.tv_sec);
-	printf("\tmicro : %ld\n", input->time.tv_usec);
+	printf("\tsec   : %ld\n", input->header.ts);
 	printf("\n");
 
 	/* print out cpu info */
@@ -244,7 +246,7 @@ int mode_client_collectstats (comm_t *client_stats)
 	getloadavg(client_stats->avg.avg, 3);
 
 	/* get timestamp */
-	gettimeofday(&(client_stats->time), NULL);
+	client_stats->header.ts = (unsigned long)time(NULL);
 
 	/* getting memory statistics */
 	getmemstats(&(client_stats->mem));
@@ -310,36 +312,114 @@ void getmemstats(stat_mem_t *input)
 
 void mode_listener(cmds_t *args)
 {
-	int max_size, size, i;
-	node_info_t **data;
-
-	/* we have to spend some time getting some buffered memory ready */
-	max_size = INITIAL_SIZE;
-	size = 0;
-	data = malloc(sizeof(node_info_t *) * max_size);
-
-	if (data) { // this is the main server loop
-		while (0xdeadbeef) {
-		}
-	}
-
-	// free all of the data, we got the signal to shutdown
-	if (data) {
-		for (i = 0; i < size; i++) {
-			if (data[i]) {
-				free(data[i]);
-			}
-		}
-
-		free(data);
-	}
-}
-
-void mode_listener_loop(cmds_t *args, node_info_t **data)
-{
+	int max_size;
 	int loop;
+	int fd;
+	int total_data;
+	int recieved;
+
+	char *buffer;
+	char *ptr;
+
+	pid_t pid;
+
+	struct LL *node_info     = NULL;
+	struct LL *user_commands = NULL;
+	struct LL *control_data  = NULL;
+
+	max_size = INITIAL_SIZE;
 
 	loop = 1;
-	while (loop) {
+	total_data = 0;
+	recieved   = 0;
+
+	/* get a socket */
+	fd = createSocket(args->port, MAX_CLIENTS, 0);
+
+	if (fd == -1) {
+		perror(NULL);
 	}
+
+	buffer = malloc(SOCKET_BUFFER);
+
+	if (buffer) {
+		memset(buffer, 0, SOCKET_BUFFER);
+	}
+
+	while (loop) {
+		while (total_data < SOCKET_BUFFER) {
+			recieved = recv(fd, buffer, strlen("helloworld"), 0);
+
+			if (recieved != 0) {
+				if (strncmp(buffer, "helloworld", recieved) == 0) {
+					pid = fork();
+
+					switch (pid) {
+					case -1:
+						fprintf(stderr, "FAILED TO FORK!\n");
+						loop = 0;
+						break;
+
+					case 0:  /* child quits the program on return */
+						do_child();
+						exit(0);
+
+					default: /* parent */
+
+				}
+			}
+		}
+	}
+
+	/* close the socket */
+	close(fd);
+
+	/* free all of the things */
+	free_whole_list(control_data);
+	free_whole_list(node_info);
+	free_whole_list(user_commands);
+}
+
+int createSocket(int portnum, int maxClient, int mode)
+{
+	struct  sockaddr_in   saddr;        /* build our address here */
+	struct  hostent     *hostpointer;   /* this is part of our    */
+	char    hostname[HOSTLEN];          /* address            */
+	int sock_id;                        /* the socket which will be returned*/
+	
+	sock_id = socket(PF_INET, SOCK_STREAM, 0);
+
+	if ( sock_id == -1 ) 
+		return -1;
+	
+	bzero((void *)&saddr, sizeof(saddr));//null contensts of struct
+
+	if(mode != 1)
+	{
+		gethostname(hostname, HOSTLEN);
+		hostpointer = gethostbyname(hostname);
+		bcopy( (void *)hostpointer->h_addr,
+				(void *)&saddr.sin_addr, hostpointer->h_length);
+	} else {
+		saddr.sin_addr.s_addr = INADDR_ANY;
+	}
+	//give the socket good stuff
+	saddr.sin_port = htons(portnum);
+	saddr.sin_family = AF_INET;
+	
+	//verify that everything worked and we are all good.
+	if ( bind(sock_id, (struct sockaddr *)&saddr, sizeof(saddr)) != 0 )
+		return -1;
+
+	if ( listen(sock_id, maxClient) != 0 ) 
+		return -1;
+
+	return sock_id;
+}
+
+void print_help_text()
+{
+	char *help =
+		"USAGE: \"./mmns {-p port, -l, -v verbose, -s}";
+	printf("%s\n", help);
 }

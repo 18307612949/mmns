@@ -1,6 +1,6 @@
 CC = gcc
 TARGET = mmns
-OBJECTS = main.o funclib.o sqlite3.o
+OBJECTS = main.o funclib.o sqlite3.o list.o
 FLAGS = -Wall -pthread -ldl
 
 all: $(TARGET)

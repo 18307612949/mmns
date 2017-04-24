@@ -1,0 +1,85 @@
+This is an org mode formatted file, written with vim-orgmode
+
+* Things Left for version 1 release
+** Storing Node Data
+      
+      At this time, all data storage is within a single-direction
+      Linked List. You can do `void *` things within them easily enough
+      that most of the same list functions can be used on node data, as
+      well as the requests from clients.
+
+** Storing User Sessions
+
+      Read above
+
+** Reading from a client
+
+      Client requests will be read in as JSON, it's that simple.
+
+*** actions
+
+      Each wave of data from the webserver client is sent through within the
+      list of actions.
+
+**** start
+
+      This will simply start the vncserver with the 'username', 'password'
+      and will return to the front end, a JSON object that looks like this:
+
+      @begin=js@
+      [
+            { "action":"start" },
+            { "username":<real username here> },
+            { "password":<unencrypted password for now> },
+      ]
+      @end=js@
+
+      And you will be returned:
+
+      @begin=js@
+      [
+            { "status":1 }, // 1 on success, 0 on fail
+            { "ip":<ip address here> },
+            { "display":<display number here> },
+            { "otp":<one time password> },
+      ]
+      @end=js@
+
+**** kill and new-otp
+      Both of these require you to send some more information to the backend.
+      Because you are killing a specific session, we need to know what
+      specific session you plan on killing. This is done by the following:
+
+      @begin=js@
+      [
+            { "action":"kill" },
+            { "username":<real username here> },
+            { "password":<unencrypted password for now> },
+            { "ip":<ip address here> },
+            { "display":<display here> },
+      ]
+      @end=js@
+
+      And for now, in return, you simply get something like this:
+
+      @begin=js@
+      [
+            { "status":1 } // 1 on success, 0 on fail
+      ]
+      @end=js@
+
+*** Why must I provide a user's full credentials?
+
+      Because the TurboVNC suite assumes that the particular user that will
+      be using the session will be starting it up, so we use
+
+      @begin=c@
+            struct passwd *tmp = getpwnam("username here");
+            setuid(tmp->pw_uid);
+      @end=c@
+
+
+
+
+      
+** Interpreting Actions

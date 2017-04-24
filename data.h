@@ -47,6 +47,9 @@ typedef struct comm_t {
 	stat_mem_t mem;
 } comm_t;
 
+
+
+
 typedef struct node_info_t {
 	uint32_t  ip;							// network byte order
 	uint16_t  port;							// 0 - 65535
